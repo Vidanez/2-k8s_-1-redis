@@ -1,0 +1,42 @@
+# values.yaml for Redis Helm chart
+global:
+  name: redis-cluster01
+
+replica:
+  replicaCount: 2
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "200m"
+
+cluster:
+  enabled: true
+  slaveCount: 1
+
+service:
+  type: ClusterIP
+  annotations:
+    service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
+
+redis:
+  password: ""
+  tls:
+    enabled: false
+
+sentinel:
+  enabled: true
+  masterSet: redis-cluster01
+  replicas: 2
+  automaticFailover: true
+
+networkPolicy:
+  enabled: false
+
+persistence:
+  enabled: false
+
+metrics:
+  enabled: false
