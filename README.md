@@ -1,5 +1,3 @@
-Great, let's create a detailed README file based on your requirements. Here's a draft for your repository:
-
 ---
 
 # Redis High Availability Setup Across Two Kubernetes Clusters
@@ -80,11 +78,17 @@ helm install redis-secondary bitnami/redis -f values.yaml --kube-context seconda
 Inject data into Redis and verify that it is consistent across both clusters.
 
 ```sh
+# Get the Redis pod name in the primary cluster
+REDIS_POD_PRIMARY=$(kubectl get pods --context primary-cluster -l app.kubernetes.io/name=redis -o jsonpath="{.items.metadata.name}")
+
 # Inject data into Redis in primary cluster
-kubectl exec -it <redis-pod> --context primary-cluster -- redis-cli set key "value"
+kubectl exec -it $REDIS_POD_PRIMARY --context primary-cluster -- redis-cli set key "value"
+
+# Get the Redis pod name in the secondary cluster
+REDIS_POD_SECONDARY=$(kubectl get pods --context secondary-cluster -l app.kubernetes.io/name=redis -o jsonpath="{.items.metadata.name}")
 
 # Retrieve data from Redis in secondary cluster
-kubectl exec -it <redis-pod> --context secondary-cluster -- redis-cli get key
+kubectl exec -it $REDIS_POD_SECONDARY --context secondary-cluster -- redis-cli get key
 ```
 
 ### 2. Simulate Failures
@@ -92,14 +96,17 @@ kubectl exec -it <redis-pod> --context secondary-cluster -- redis-cli get key
 Simulate node, cluster, and Redis pod failures to test the high availability setup.
 
 ```sh
+# Get the node name in the primary cluster
+NODE_NAME_PRIMARY=$(kubectl get nodes --context primary-cluster -o jsonpath="{.items.metadata.name}")
+
 # Simulate node failure in primary cluster
-kubectl drain <node-name> --ignore-daemonsets --delete-local-data --context primary-cluster
+kubectl drain $NODE_NAME_PRIMARY --ignore-daemonsets --delete-local-data --context primary-cluster
 
 # Simulate cluster failure
 gcloud container clusters delete secondary-cluster --zone europe-west1
 
-# Simulate Redis pod failure
-kubectl delete pod <redis-pod> --context primary-cluster
+# Simulate Redis pod failure in primary cluster
+kubectl delete pod $REDIS_POD_PRIMARY --context primary-cluster
 ```
 
 ## Troubleshooting
@@ -116,5 +123,3 @@ kubectl delete pod <redis-pod> --context primary-cluster
    - Check the Helm deployment logs for any errors and ensure the `values.yaml` file is correctly configured.
 
 ---
-
-This README file provides a comprehensive guide to setting up and demonstrating the Redis high availability setup across two Kubernetes clusters. If you have any further questions or need additional details, feel free to ask!
