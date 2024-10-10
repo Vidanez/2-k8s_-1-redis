@@ -1,4 +1,3 @@
-```markdown
 # Redis High Availability Setup Across Two Kubernetes Clusters
 
 ## Overview
