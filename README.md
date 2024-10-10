@@ -1,5 +1,3 @@
-Sure, here's the updated README file without the content of the configuration files:
-
 ---
 
 # Redis High Availability Setup Across Two Kubernetes Clusters
@@ -168,4 +166,3 @@ kubectl delete pod $REDIS_POD_PRIMARY --context primary-cluster
 2. **`values.yaml`** (Helm values file for Redis)
 3. **`redis-headless-service.yaml`** (Headless service for Redis)
 
-By including these files and following the steps outlined in the README, you will be able to set up and demonstrate a Redis cluster with high availability across two Kubernetes clusters on GCP. If you have any further questions or need additional details, feel free to ask!
