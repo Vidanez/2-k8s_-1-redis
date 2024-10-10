@@ -1,24 +1,38 @@
 provider "google" {
-  project = "hip-limiter-345408"
-  region  = "europe-west1"
+  project = var.project_id
+  region  = var.region
 }
 
-resource "google_container_cluster" "primary" {
-  name     = "primary-cluster"
-  location = "europe-west1"
-  node_config {
-    machine_type = "e2-medium"
-    disk_size_gb = 30
-  }
-  initial_node_count = 1
+# Create VPC network
+resource "google_compute_network" "vpc_network" {
+  name = "redis-vpc"
 }
 
-resource "google_container_cluster" "secondary" {
-  name     = "secondary-cluster"
-  location = "europe-west1"
+# Create subnets for clusters
+resource "google_compute_subnetwork" "subnet" {
+  for_each = {
+    "primary-cluster"   = "10.1.0.0/16"
+    "secondary-cluster" = "10.2.0.0/16"
+  }
+
+  name          = "${each.key}-subnet"
+  region        = var.region
+  ip_cidr_range = each.value
+  network       = google_compute_network.vpc_network.self_link
+}
+
+# Create GKE clusters (using subnets)
+resource "google_container_cluster" "cluster" {
+  for_each = {
+    for name in var.cluster_name : name => name
+  }
+
+  name               = each.key
+  location           = var.region
+  initial_node_count = var.num_nodes
   node_config {
-    machine_type = "e2-medium"
+    machine_type = var.machine_type
     disk_size_gb = 30
   }
-  initial_node_count = 1
+  subnetwork = google_compute_subnetwork.subnet[each.key].self_link
 }
