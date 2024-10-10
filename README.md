@@ -1,5 +1,4 @@
----
-
+```markdown
 # Redis High Availability Setup Across Two Kubernetes Clusters
 
 ## Overview
@@ -59,6 +58,51 @@ kubectl config rename-context $(kubectl config current-context) secondary-cluste
 
 Create a `values.yaml` file with the necessary configuration for Redis high availability.
 
+```yaml
+# values.yaml for Redis Helm chart
+global:
+  name: redis-cluster01
+
+replica:
+  replicaCount: 2
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "200m"
+
+cluster:
+  enabled: true
+  slaveCount: 1
+
+service:
+  type: ClusterIP
+  annotations:
+    service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
+
+redis:
+  password: ""
+  tls:
+    enabled: false
+
+sentinel:
+  enabled: true
+  masterSet: redis-cluster01
+  replicas: 2
+  automaticFailover: true
+
+networkPolicy:
+  enabled: false
+
+persistence:
+  enabled: false
+
+metrics:
+  enabled: false
+```
+
 ### 2. Deploy Redis Using Helm
 
 Deploy the Redis Helm chart to both clusters using the configured `values.yaml`.
@@ -69,6 +113,36 @@ helm install redis-primary bitnami/redis -f values.yaml --kube-context primary-c
 
 # Deploy to secondary cluster
 helm install redis-secondary bitnami/redis -f values.yaml --kube-context secondary-cluster
+```
+
+### 3. Deploy Headless Service for Redis
+
+Create and deploy a headless service to enable service discovery.
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-headless
+  labels:
+    app: redis
+spec:
+  ports:
+  - port: 6379
+    name: redis
+  clusterIP: None
+  selector:
+    app: redis
+```
+
+Deploy this service in both clusters:
+
+```sh
+# Deploy headless service to primary cluster
+kubectl apply -f redis-headless-service.yaml --context primary-cluster
+
+# Deploy headless service to secondary cluster
+kubectl apply -f redis-headless-service.yaml --context secondary-cluster
 ```
 
 ## Testing and Validation
