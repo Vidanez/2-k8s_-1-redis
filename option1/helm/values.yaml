@@ -1,9 +1,11 @@
 # values.yaml for Redis Helm chart
 global:
-  name: redis-cluster01
+  name: redis-cluster
 
-replica:
-  replicaCount: 2
+cluster:
+  enabled: true
+  slaveCount: 1
+  replicas: 6
   resources:
     requests:
       memory: "256Mi"
@@ -11,10 +13,6 @@ replica:
     limits:
       memory: "512Mi"
       cpu: "200m"
-
-cluster:
-  enabled: true
-  slaveCount: 1
 
 service:
   type: ClusterIP
@@ -25,12 +23,6 @@ redis:
   password: ""
   tls:
     enabled: false
-
-sentinel:
-  enabled: true
-  masterSet: redis-cluster01
-  replicas: 2
-  automaticFailover: true
 
 networkPolicy:
   enabled: false

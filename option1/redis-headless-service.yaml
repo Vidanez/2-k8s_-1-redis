@@ -12,4 +12,3 @@ spec:
   clusterIP: None
   selector:
     app: redis
-
