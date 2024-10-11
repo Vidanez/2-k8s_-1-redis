@@ -1,4 +1,4 @@
-# Option 1 Solution Not Using Multi-Cluster
+# OPTION 1 SOLUTION NOT USING MULTI-CLUSTER
 
 ## Overview
 
@@ -291,4 +291,4 @@ kubectl exec -it $REDIS_CLUSTER_POD_PRIMARY --context primary-cluster -- redis-c
 3. **`values.yaml`** (Helm values file for Redis Cluster)
 4. **`redis-headless-service.yaml`** (Headless service for Redis)
 
-# Option 2 Solution Using Multi-Cluster
+# OPTION 2 SOLUTION USING MULTI-CLUSTER
