@@ -68,3 +68,55 @@ resource "google_compute_global_forwarding_rule" "redis_forwarding_rule" {
   target     = google_compute_target_tcp_proxy.redis_tcp_proxy.self_link
   port_range = "6379"
 }
+
+# Allow internal traffic
+resource "google_compute_firewall" "allow-internal" {
+  name    = "allow-internal"
+  network = google_compute_network.vpc_network.name
+
+  allow {
+    protocol = "tcp"
+    ports    = ["6379"]
+  }
+
+  source_ranges = ["10.0.0.0/8"]
+}
+
+# Allow external traffic to Load Balancer
+resource "google_compute_firewall" "allow-external" {
+  name    = "allow-external"
+  network = google_compute_network.vpc_network.name
+
+  allow {
+    protocol = "tcp"
+    ports    = ["6379"]
+  }
+
+  source_ranges = ["0.0.0.0/0"]
+}
+
+# Variable declarations
+variable "project_id" {
+  description = "The GCP project ID"
+  type        = string
+}
+
+variable "region" {
+  description = "The GCP region"
+  type        = string
+}
+
+variable "cluster_name" {
+  description = "List of cluster names"
+  type        = list(string)
+}
+
+variable "machine_type" {
+  description = "The machine type for the cluster nodes"
+  type        = string
+}
+
+variable "num_nodes" {
+  description = "The number of nodes in each cluster"
+  type        = number
+}
