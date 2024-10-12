@@ -1,4 +1,6 @@
-# OPTION 1 SOLUTION NOT USING MULTI-CLUSTER
+---
+
+# Option 1 Solution Not Using Multi-Cluster
 
 ## Overview
 
@@ -142,88 +144,55 @@ kubectl apply -f redis-headless-service.yaml --context secondary-cluster
 
 The headless service is used to enable service discovery within the Kubernetes clusters. By setting `clusterIP: None`, the service does not get a cluster IP address, and instead, DNS queries for the service return the IP addresses of the associated pods. This allows Redis nodes to discover each other and form a cluster.
 
-### 4. Configure Global Load Balancer
+## Load Balancer Configuration (CLI Commands)
 
-Set up a global load balancer to route traffic to the Redis instances across both clusters.
+To set up a load balancer using the CLI, follow these steps:
 
-Create a `main.tf` file with the following content:
+1. **Create a Backend Service:**
 
-```hcl
-provider "google" {
-  project = var.project_id
-  region  = var.region
-}
-
-# Create VPC network
-resource "google_compute_network" "vpc_network" {
-  name = "redis-vpc"
-}
-
-# Create subnets for clusters
-resource "google_compute_subnetwork" "subnet" {
-  for_each = {
-    "primary-cluster"   = "10.1.0.0/16"
-    "secondary-cluster" = "10.2.0.0/16"
-  }
-
-  name          = "${each.key}-subnet"
-  region        = var.region
-  ip_cidr_range = each.value
-  network       = google_compute_network.vpc_network.self_link
-}
-
-# Create GKE clusters (using subnets)
-resource "google_container_cluster" "cluster" {
-  for_each = {
-    for name in var.cluster_name : name => name
-  }
-
-  name               = each.key
-  location           = var.region
-  initial_node_count = var.num_nodes
-  node_config {
-    machine_type = var.machine_type
-    disk_size_gb = 30
-  }
-  subnetwork = google_compute_subnetwork.subnet[each.key].self_link
-}
-
-# Create a backend service for the Load Balancer
-resource "google_compute_backend_service" "redis_backend_service" {
-  name     = "redis-backend-service"
-  protocol = "TCP"
-  load_balancing_scheme = "EXTERNAL"
-  backend {
-    group = google_container_cluster.cluster["primary-cluster"].instance_group_urls
-  }
-  backend {
-    group = google_container_cluster.cluster["secondary-cluster"].instance_group_urls
-  }
-}
-
-# Create a URL map for the Load Balancer
-resource "google_compute_url_map" "redis_url_map" {
-  name            = "redis-url-map"
-  default_service = google_compute_backend_service.redis_backend_service.self_link
-}
-
-# Create a target TCP proxy for the Load Balancer
-resource "google_compute_target_tcp_proxy" "redis_tcp_proxy" {
-  name        = "redis-tcp-proxy"
-  url_map     = google_compute_url_map.redis_url_map.self_link
-}
-
-# Create a global forwarding rule for the Load Balancer
-resource "google_compute_global_forwarding_rule" "redis_forwarding_rule" {
-  name       = "redis-forwarding-rule"
-  target     = google_compute_target_tcp_proxy.redis_tcp_proxy.self_link
-  port_range = "6379"
-}
+```sh
+gcloud compute backend-services create redis-backend-service --global --protocol TCP
 ```
 
-### Note on Load Balancer Configuration
+2. **Add Instance Groups to the Backend Service:**
 
-The Load Balancer configuration is optional but recommended for simplifying client access to the Redis Cluster. It provides a single endpoint for clients to connect to, abstracting the complexity of managing multiple Redis nodes.
+```sh
+# Add primary cluster instance group
+gcloud compute backend-services add-backend redis-backend-service --global --instance-group=primary-cluster-group --instance-group-zone=europe-west1-b
+
+# Add secondary cluster instance group
+gcloud compute backend-services add-backend redis-backend-service --global --instance-group=secondary-cluster-group --instance-group-zone=europe-west1-b
+```
+
+3. **Create a Health Check:**
+
+```sh
+gcloud compute health-checks create tcp redis-health-check --port 6379
+```
+
+4. **Attach the Health Check to the Backend Service:**
+
+```sh
+gcloud compute backend-services update redis-backend-service --global --health-checks=redis-health-check
+```
+
+5. **Create a URL Map:**
+
+```sh
+gcloud compute url-maps create redis-url-map --default-service redis-backend-service
+```
+
+6. **Create a Target TCP Proxy:**
+
+```sh
+gcloud compute target-tcp-proxies create redis-tcp-proxy --backend-service=redis-backend-service
+```
+
+7. **Create a Global Forwarding Rule:**
+
+```sh
+gcloud compute forwarding-rules create redis-forwarding-rule --global --target-tcp-proxy=redis-tcp-proxy --ports=6379
+```
 
 ## Testing and Validation
 
@@ -289,7 +258,8 @@ kubectl exec -it $REDIS_CLUSTER_POD_PRIMARY --context primary-cluster -- redis-c
 1. **`main.tf`** (Terraform configuration file)
 2. **`terraform.tfvars`** (Terraform variables values file)
 3. **`values.yaml`** (Helm values file for Redis Cluster)
-4. **`redis-headless-service.yaml`** (Headless service for Redis)
+4. **`redis-headless-service.yaml`** (Headless service for Redis Cluster)
+
 
 # OPTION 2 SOLUTION USING MULTI-CLUSTER
 
