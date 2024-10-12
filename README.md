@@ -292,3 +292,5 @@ kubectl exec -it $REDIS_CLUSTER_POD_PRIMARY --context primary-cluster -- redis-c
 4. **`redis-headless-service.yaml`** (Headless service for Redis)
 
 # OPTION 2 SOLUTION USING MULTI-CLUSTER
+
+https://github.com/bryonbaker/rhai-redis-demo/blob/main/doc/demo-script.md
