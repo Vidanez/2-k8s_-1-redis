@@ -37,15 +37,15 @@ resource "google_container_cluster" "cluster" {
   subnetwork = google_compute_subnetwork.subnet[each.key].self_link
 }
 
-# Create instance groups for clusters
-resource "google_compute_instance_group" "instance_group" {
+# Create instance group managers for clusters
+resource "google_compute_instance_group_manager" "instance_group_manager" {
   for_each = google_container_cluster.cluster
 
-  name        = "${each.key}-instance-group"
-  zone        = "${var.region}-b"
-  network     = google_compute_network.vpc_network.name
-  subnetwork  = google_compute_subnetwork.subnet[each.key].name
-  instances   = [for instance in each.value.node_pool.instance_group_urls : instance]
+  name               = "${each.key}-instance-group-manager"
+  base_instance_name = each.key
+  instance_template  = google_container_cluster.cluster[each.key].instance_group_urls
+  zone               = "${var.region}-b"
+  target_size        = var.num_nodes
 }
 
 # Create a backend service for the Load Balancer
@@ -54,10 +54,10 @@ resource "google_compute_backend_service" "redis_backend_service" {
   protocol = "TCP"
   load_balancing_scheme = "EXTERNAL"
   backend {
-    group = google_compute_instance_group.instance_group["primary-cluster"].self_link
+    group = google_compute_instance_group_manager.instance_group_manager["primary-cluster"].self_link
   }
   backend {
-    group = google_compute_instance_group.instance_group["secondary-cluster"].self_link
+    group = google_compute_instance_group_manager.instance_group_manager["secondary-cluster"].self_link
   }
 }
 
