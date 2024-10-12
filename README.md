@@ -293,4 +293,4 @@ kubectl exec -it $REDIS_CLUSTER_POD_PRIMARY --context primary-cluster -- redis-c
 
 # OPTION 2 SOLUTION USING MULTI-CLUSTER
 
-https://github.com/bryonbaker/rhai-redis-demo/blob/main/doc/demo-script.md
+https://github.com/bryonbaker/rhai-redis-demo/blob/main/doc/demo-script.md Building a Global Redis Cache with OpenShift and Red Hat Application Interconnect (aka Skupper)
