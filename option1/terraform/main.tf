@@ -37,29 +37,34 @@ resource "google_container_cluster" "cluster" {
   subnetwork = google_compute_subnetwork.subnet[each.key].self_link
 }
 
+# Create instance groups for clusters
+resource "google_compute_instance_group" "instance_group" {
+  for_each = google_container_cluster.cluster
+
+  name        = "${each.key}-instance-group"
+  zone        = "${var.region}-b"
+  network     = google_compute_network.vpc_network.name
+  subnetwork  = google_compute_subnetwork.subnet[each.key].name
+  instances   = [for instance in each.value.node_pool.instance_group_urls : instance]
+}
+
 # Create a backend service for the Load Balancer
 resource "google_compute_backend_service" "redis_backend_service" {
   name     = "redis-backend-service"
   protocol = "TCP"
   load_balancing_scheme = "EXTERNAL"
   backend {
-    group = google_container_cluster.cluster["primary-cluster"].instance_group_urls
+    group = google_compute_instance_group.instance_group["primary-cluster"].self_link
   }
   backend {
-    group = google_container_cluster.cluster["secondary-cluster"].instance_group_urls
+    group = google_compute_instance_group.instance_group["secondary-cluster"].self_link
   }
-}
-
-# Create a URL map for the Load Balancer
-resource "google_compute_url_map" "redis_url_map" {
-  name            = "redis-url-map"
-  default_service = google_compute_backend_service.redis_backend_service.self_link
 }
 
 # Create a target TCP proxy for the Load Balancer
 resource "google_compute_target_tcp_proxy" "redis_tcp_proxy" {
-  name        = "redis-tcp-proxy"
-  url_map     = google_compute_url_map.redis_url_map.self_link
+  name            = "redis-tcp-proxy"
+  backend_service = google_compute_backend_service.redis_backend_service.self_link
 }
 
 # Create a global forwarding rule for the Load Balancer
