@@ -54,8 +54,21 @@ kubectl config rename-context $(kubectl config current-context) secondary-cluste
 ```
 
 ## Deployment Instructions
+### Preparation
+Update Helm Repositories: Ensure your Helm repositories are up to date. Run the following command to update the repositories:
+```sh
+helm repo update
+```
+Add the Bitnami Repository: If the Bitnami repository is not added or needs to be re-added, use the following command:
+```sh
+helm repo add bitnami https://charts.bitnami.com/bitnami
+```
+Verify the Repository: Check if the repository is correctly added and accessible:
+```sh
+helm search repo bitnami/redis-cluster
+```
 
-### 1. Prepare `values.yaml` for Redis Cluster Helm Chart
+### 1. Use `values.yaml` for Redis Cluster Helm Chart
 
 Create a `values.yaml` file with the necessary configuration for Redis Cluster.
 option1/helm/values.yaml
