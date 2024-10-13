@@ -73,23 +73,25 @@ resource "google_compute_firewall" "allow-external" {
 resource "google_container_cluster" "primary_cluster" {
   name               = "primary-cluster"
   location           = var.region
-  network            = google_compute_network.vpc_network.id  # Specify the correct network
+  network            = google_compute_network.vpc_network.id
   subnetwork         = google_compute_subnetwork.primary_subnet.id
   initial_node_count = var.num_nodes
 
   node_config {
     machine_type = var.machine_type
+    disk_size_gb = 50  
   }
 }
 
 resource "google_container_cluster" "secondary_cluster" {
   name               = "secondary-cluster"
   location           = var.region
-  network            = google_compute_network.vpc_network.id  # Specify the correct network
+  network            = google_compute_network.vpc_network.id
   subnetwork         = google_compute_subnetwork.secondary_subnet.id
   initial_node_count = var.num_nodes
 
   node_config {
     machine_type = var.machine_type
+    disk_size_gb = 50  
   }
 }
