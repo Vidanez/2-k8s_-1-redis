@@ -126,23 +126,8 @@ helm install redis-cluster-secondary bitnami/redis-cluster -f values.yaml --kube
 
 Create and deploy a headless service to enable service discovery.
 
-Create a `redis-headless-service.yaml` file with the following content:
+Use file `redis-headless-service.yaml` at folder root
 
-```yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: redis-headless
-  labels:
-    app: redis
-spec:
-  ports:
-  - port: 6379
-    name: redis
-  clusterIP: None
-  selector:
-    app: redis
-```
 
 Deploy this service in both clusters:
 
