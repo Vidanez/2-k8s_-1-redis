@@ -70,45 +70,8 @@ helm search repo bitnami/redis-cluster
 
 ### 1. Use `values.yaml` for Redis Cluster Helm Chart
 
-Create a `values.yaml` file with the necessary configuration for Redis Cluster.
+Use a `values.yaml` file with the necessary configuration for Redis Cluster.
 option1/helm/values.yaml
-
-```yaml
-# values.yaml for Redis Helm chart
-global:
-  name: redis-cluster
-
-cluster:
-  enabled: true
-  slaveCount: 1
-  replicas: 6
-  resources:
-    requests:
-      memory: "256Mi"
-      cpu: "100m"
-    limits:
-      memory: "512Mi"
-      cpu: "200m"
-
-service:
-  type: ClusterIP
-  annotations:
-    service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
-
-redis:
-  password: ""
-  tls:
-    enabled: false
-
-networkPolicy:
-  enabled: false
-
-persistence:
-  enabled: false
-
-metrics:
-  enabled: false
-```
 
 ### 2. Deploy Redis Cluster Using Helm
 
