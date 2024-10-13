@@ -4,8 +4,8 @@ global:
 
 cluster:
   enabled: true
-  slaveCount: 2
-  replicas: 3
+  slaveCount: 1
+  replicas: 1
   resources:
     requests:
       memory: "256Mi"
