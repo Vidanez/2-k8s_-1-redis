@@ -3,6 +3,26 @@ provider "google" {
   region  = var.region
 }
 
+variable "project_id" {
+  description = "The project ID to deploy to"
+  type        = string
+}
+
+variable "region" {
+  description = "The region to deploy to"
+  type        = string
+}
+
+variable "machine_type" {
+  description = "The machine type to use for the nodes"
+  type        = string
+}
+
+variable "num_nodes" {
+  description = "The number of nodes to create in the cluster"
+  type        = number
+}
+
 resource "google_compute_network" "vpc_network" {
   name = "redis-vpc"
 }
@@ -55,10 +75,10 @@ resource "google_container_cluster" "primary_cluster" {
   location           = var.region
   network            = google_compute_network.vpc_network.id  # Specify the correct network
   subnetwork         = google_compute_subnetwork.primary_subnet.id
-  initial_node_count = 3
+  initial_node_count = var.num_nodes
 
   node_config {
-    machine_type = "e2-medium"
+    machine_type = var.machine_type
   }
 }
 
@@ -67,9 +87,9 @@ resource "google_container_cluster" "secondary_cluster" {
   location           = var.region
   network            = google_compute_network.vpc_network.id  # Specify the correct network
   subnetwork         = google_compute_subnetwork.secondary_subnet.id
-  initial_node_count = 3
+  initial_node_count = var.num_nodes
 
   node_config {
-    machine_type = "e2-medium"
+    machine_type = var.machine_type
   }
 }
