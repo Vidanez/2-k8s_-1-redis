@@ -76,6 +76,7 @@ resource "google_container_cluster" "primary_cluster" {
   network            = google_compute_network.vpc_network.id
   subnetwork         = google_compute_subnetwork.primary_subnet.id
   initial_node_count = var.num_nodes
+  deletion_protection = false
 
   node_config {
     machine_type = var.machine_type
@@ -89,6 +90,7 @@ resource "google_container_cluster" "secondary_cluster" {
   network            = google_compute_network.vpc_network.id
   subnetwork         = google_compute_subnetwork.secondary_subnet.id
   initial_node_count = var.num_nodes
+  deletion_protection = false
 
   node_config {
     machine_type = var.machine_type
