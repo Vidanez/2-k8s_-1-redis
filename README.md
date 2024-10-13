@@ -58,6 +58,7 @@ kubectl config rename-context $(kubectl config current-context) secondary-cluste
 ### 1. Prepare `values.yaml` for Redis Cluster Helm Chart
 
 Create a `values.yaml` file with the necessary configuration for Redis Cluster.
+option1/helm/values.yaml
 
 ```yaml
 # values.yaml for Redis Helm chart
