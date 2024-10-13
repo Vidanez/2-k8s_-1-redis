@@ -43,3 +43,6 @@ affinity:
               values:
                 - redis
         topologyKey: "kubernetes.io/hostname"
+
+podLabels:
+  app.kubernetes.io/name: redis-cluster
