@@ -3,94 +3,73 @@ provider "google" {
   region  = var.region
 }
 
-# Create VPC network
 resource "google_compute_network" "vpc_network" {
   name = "redis-vpc"
 }
 
-# Create subnet for primary cluster
 resource "google_compute_subnetwork" "primary_subnet" {
   name          = "primary-cluster-subnet"
+  ip_cidr_range = "10.0.0.0/16"
   region        = var.region
-  ip_cidr_range = "10.1.0.0/16"
-  network       = google_compute_network.vpc_network.self_link
+  network       = google_compute_network.vpc_network.id
 }
 
-# Create subnet for secondary cluster
 resource "google_compute_subnetwork" "secondary_subnet" {
   name          = "secondary-cluster-subnet"
+  ip_cidr_range = "10.1.0.0/16"
   region        = var.region
-  ip_cidr_range = "10.2.0.0/16"
-  network       = google_compute_network.vpc_network.self_link
+  network       = google_compute_network.vpc_network.id
 }
 
-# Create primary GKE cluster
-resource "google_container_cluster" "primary_cluster" {
-  name               = "primary-cluster"
-  location           = var.region
-  initial_node_count = var.num_nodes
-  node_config {
-    machine_type = var.machine_type
-    disk_size_gb = 30
-  }
-  subnetwork = google_compute_subnetwork.primary_subnet.self_link
-}
-
-# Create secondary GKE cluster
-resource "google_container_cluster" "secondary_cluster" {
-  name               = "secondary-cluster"
-  location           = var.region
-  initial_node_count = var.num_nodes
-  node_config {
-    machine_type = var.machine_type
-    disk_size_gb = 30
-  }
-  subnetwork = google_compute_subnetwork.secondary_subnet.self_link
-}
-
-# Allow internal traffic
 resource "google_compute_firewall" "allow-internal" {
   name    = "allow-internal"
   network = google_compute_network.vpc_network.name
 
   allow {
     protocol = "tcp"
-    ports    = ["6379"]
+    ports    = ["0-65535"]
   }
 
-  source_ranges = ["10.0.0.0/8"]
+  allow {
+    protocol = "udp"
+    ports    = ["0-65535"]
+  }
+
+  source_ranges = ["10.0.0.0/16", "10.1.0.0/16"]
 }
 
-# Allow external traffic to Load Balancer
 resource "google_compute_firewall" "allow-external" {
   name    = "allow-external"
   network = google_compute_network.vpc_network.name
 
   allow {
     protocol = "tcp"
-    ports    = ["6379"]
+    ports    = ["22", "3389", "80", "443"]
   }
 
   source_ranges = ["0.0.0.0/0"]
 }
 
-# Variable declarations
-variable "project_id" {
-  description = "The GCP project ID"
-  type        = string
+resource "google_container_cluster" "primary_cluster" {
+  name               = "primary-cluster"
+  location           = var.region
+  network            = google_compute_network.vpc_network.id  # Specify the correct network
+  subnetwork         = google_compute_subnetwork.primary_subnet.id
+  initial_node_count = 3
+
+  node_config {
+    machine_type = "e2-medium"
+  }
 }
 
-variable "region" {
-  description = "The GCP region"
-  type        = string
-}
+resource "google_container_cluster" "secondary_cluster" {
+  name               = "secondary-cluster"
+  location           = var.region
+  network            = google_compute_network.vpc_network.id  # Specify the correct network
+  subnetwork         = google_compute_subnetwork.secondary_subnet.id
+  initial_node_count = 3
 
-variable "machine_type" {
-  description = "The machine type for the cluster nodes"
-  type        = string
-}
-
-variable "num_nodes" {
-  description = "The number of nodes in each cluster"
-  type        = number
+  node_config {
+    machine_type = "e2-medium"
+  }
 }
