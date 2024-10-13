@@ -32,3 +32,14 @@ persistence:
 
 metrics:
   enabled: false
+
+affinity:
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchExpressions:
+            - key: app
+              operator: In
+              values:
+                - redis
+        topologyKey: "kubernetes.io/hostname"
