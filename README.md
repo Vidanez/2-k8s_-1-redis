@@ -261,6 +261,14 @@ kubectl exec -it $REDIS_CLUSTER_POD_PRIMARY --context primary-cluster -- redis-c
 4. **`redis-headless-service.yaml`** (Headless service for Redis Cluster)
 
 
-# OPTION 2 SOLUTION USING MULTI-CLUSTER
+# OPTION 2 USING MULTI-CLUSTER 
 
-https://github.com/bryonbaker/rhai-redis-demo/blob/main/doc/demo-script.md Building a Global Redis Cache with OpenShift and Red Hat Application Interconnect (aka Skupper)
+**k8s API Gateway** https://gateway-api.sigs.k8s.io/
+Some options:
+- **Istio** OpenSource https://istio.io/ service mesh that can manage traffic between services across multiple clusters
+- **Consul** https://www.consul.io/ by HashiCorp is another service mesh that supports multi-cluster setups. It provides service discovery, configuration, and segmentation functionality.
+- **Linkerd** https://linkerd.io/ Linkerd is a lightweight service mesh that can also manage traffic across multiple clusters. It simplifies the process of setting up a multi-cluster environment.
+
+Some other but related
+- **Google Anthos Fleet**, really close solutionto option 1 but administrating the clsuters under one set of commands
+- **Skupper** https://github.com/bryonbaker/rhai-redis-demo/blob/main/doc/demo-script.md Building a Global Redis Cache with OpenShift and Red Hat Application Interconnect (aka Skupper)
