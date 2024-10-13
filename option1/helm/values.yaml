@@ -4,6 +4,7 @@ global:
 
 cluster:
   enabled: true
+  slaveCount: 1
   replicas: 3
   resources:
     requests:
@@ -32,16 +33,16 @@ persistence:
 metrics:
   enabled: false
 
-affinity:
-  podAntiAffinity:
-    requiredDuringSchedulingIgnoredDuringExecution:
-      - labelSelector:
-          matchExpressions:
-            - key: app
-              operator: In
-              values:
-                - redis
-        topologyKey: "kubernetes.io/hostname"
+#affinity:
+#  podAntiAffinity:
+#    requiredDuringSchedulingIgnoredDuringExecution:
+#      - labelSelector:
+#          matchExpressions:
+#            - key: app
+#              operator: In
+#              values:
+#                - redis
+#        topologyKey: "kubernetes.io/hostname"
 
 podLabels:
   app.kubernetes.io/name: redis-cluster
