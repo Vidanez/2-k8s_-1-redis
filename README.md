@@ -108,7 +108,7 @@ The headless service is used to enable service discovery within the Kubernetes c
 
 ## Load Balancer Configuration (CLI Commands)
 
-To set up a load balancer using the CLI, follow these steps:
+To set up a load balancer that is optioinal and that is why dont set at the main.tf using the CLI, follow these steps:
 
 1. **Create a Backend Service:**
 
