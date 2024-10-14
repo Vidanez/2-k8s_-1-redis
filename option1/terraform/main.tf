@@ -27,23 +27,17 @@ resource "google_compute_network" "vpc_network" {
   name = "redis-vpc"
 }
 
-resource "google_compute_subnetwork" "primary_subnet" {
-  name          = "primary-cluster-subnet"
-  ip_cidr_range = "10.0.0.0/16"
-  region        = var.region
-  network       = google_compute_network.vpc_network.id
-}
-
-resource "google_compute_subnetwork" "secondary_subnet" {
-  name          = "secondary-cluster-subnet"
-  ip_cidr_range = "10.1.0.0/16"
+# Create a single subnetwork with enough space for both clusters
+resource "google_compute_subnetwork" "cluster_subnet" {
+  name          = "redis-cluster-subnet"
+  ip_cidr_range = "10.0.0.0/16"  # Adjust CIDR if needed
   region        = var.region
   network       = google_compute_network.vpc_network.id
 }
 
 resource "google_compute_firewall" "allow-internal" {
-  name    = "allow-internal"
-  network = google_compute_network.vpc_network.name
+  name       = "allow-internal"
+  network    = google_compute_network.vpc_network.name
 
   allow {
     protocol = "tcp"
@@ -55,12 +49,12 @@ resource "google_compute_firewall" "allow-internal" {
     ports    = ["0-65535"]
   }
 
-  source_ranges = ["10.0.0.0/16", "10.1.0.0/16"]
+  source_ranges = ["10.0.0.0/16"]
 }
 
 resource "google_compute_firewall" "allow-external" {
-  name    = "allow-external"
-  network = google_compute_network.vpc_network.name
+  name       = "allow-external"
+  network    = google_compute_network.vpc_network.name
 
   allow {
     protocol = "tcp"
@@ -74,13 +68,13 @@ resource "google_container_cluster" "primary_cluster" {
   name               = "primary-cluster"
   location           = var.region
   network            = google_compute_network.vpc_network.id
-  subnetwork         = google_compute_subnetwork.primary_subnet.id
+  subnetwork         = google_compute_subnetwork.cluster_subnet.id
   initial_node_count = var.num_nodes
   deletion_protection = false
 
   node_config {
     machine_type = var.machine_type
-    disk_size_gb = 50  
+    disk_size_gb = 50
   }
 }
 
@@ -88,12 +82,12 @@ resource "google_container_cluster" "secondary_cluster" {
   name               = "secondary-cluster"
   location           = var.region
   network            = google_compute_network.vpc_network.id
-  subnetwork         = google_compute_subnetwork.secondary_subnet.id
+  subnetwork         = google_compute_subnetwork.cluster_subnet.id
   initial_node_count = var.num_nodes
   deletion_protection = false
 
   node_config {
     machine_type = var.machine_type
-    disk_size_gb = 50  
+    disk_size_gb = 50
   }
 }
