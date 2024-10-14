@@ -23,6 +23,9 @@ redis:
   password: ""
   tls:
     enabled: false
+  protectedMode: "no"
+  auth:
+    enabled: false
 
 networkPolicy:
   enabled: false
